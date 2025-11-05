@@ -1,0 +1,33 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# main py file
+main.py
+
+# Virtual environments
+.venv
+
+# Versions
+versions/
+
+# Scraped Data
+categorical_data/
+finalCollegesData/
+csv_data/
+json_data/
+*.json
+seen_urls.txt
+blacklist
+college_websites.txt
+
+# one time files
+categories_colleges_nepal_.py
+fetch_colleges_nepal.py
+
+# single threaded gui
+scraper_gui.py
