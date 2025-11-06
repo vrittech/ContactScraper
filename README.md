@@ -1,7 +1,36 @@
 # ContactScraper
 
+## NOTE:
+
 > IMPORTANT: requires `selenium` and `requests`
+
 > IMPORTANT: requires `Firefox` (selenium runs on ff)
+
+> IMPORTANT: requires `git` installed; Install git [here](https://git-scm.com/install/windows)
+
+
+## Easily Running the GUI
+
+- In Windows PowerShell, run:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+- Download the repository (Check the `Code` Green button at top-right), extract the folder, and **open powershell in the same folder**
+
+***OR if git is installed***
+```powershell
+git clone https://github.com/vrittech/ContactScraper
+cd ContactScraper/
+```
+
+- Finally, run the following in `powershell`:
+
+`uv run scraper_multi_gui.py` in the ContactScraper folder
+
+
+
 
 
 ## Running the script locally

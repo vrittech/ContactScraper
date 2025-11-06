@@ -36,6 +36,29 @@ init()  # Initialize colorama
 
 DEBUGGER=False
 
+# ----------------------------------------------------------------------
+# 1. List of *all* valid area codes (exactly as they appear in the page)
+# ----------------------------------------------------------------------
+_VALID_AREA_CODES = {
+    # 2-digit
+    "01", "10", "11", "19", "21", "23", "24", "25", "26", "27", "29",
+    "31", "33", "35", "36", "37", "38", "41", "44", "46", "47", "48", "49",
+    "51", "53", "55", "56", "57", "61", "63", "64", "65", "66", "67", "68",
+    "69", "71", "75", "76", "77", "78", "79", "81", "82", "83", "84", "86",
+    "87", "88", "89", "91", "92", "93", "94", "95", "96", "97", "99",
+    # 3-digit (the “0xx” family)
+    "010", "011", "019", "021", "023", "024", "025", "026", "027", "029",
+    "031", "033", "035", "036", "037", "038", "041", "044", "046", "047",
+    "048", "049", "051", "053", "055", "056", "057", "061", "063", "064",
+    "065", "066", "067", "068", "069", "071", "075", "076", "077", "078",
+    "079", "081", "082", "083", "084", "086", "087", "088", "089", "091",
+    "092", "093", "094", "095", "096", "097", "099",
+}
+
+# Build a single alternation pattern – sorted longest-first so that 010 matches before 01
+_AREA_CODE_PATTERN = "|".join(sorted(_VALID_AREA_CODES, key=len, reverse=True))
+
+
 # ==============================
 # Configuration & Constants
 # ==============================
@@ -94,26 +117,40 @@ class Patterns:
         re.VERBOSE | re.IGNORECASE,
     )
     # THE following regex matches 3-digit area codes
+    # OTHER_PHONE_NP = re.compile(
+    #     r""" 
+    #     \b
+    #     (?:\+977[-\.\s]?)?     # +977
+    #     (?:0[-\.\s]?)?         # leading 0
+    #     (
+    #         # Kathmandu: 1 + 7 digits (total 8)
+    #         1[-\.\s]?(?:\d[-\.\s]*){7}
+    # 
+    #         # Other landlines: 2-3 digit area code + digits to make total 8
+    #         | [2-9]\d{1,2}[-\.\s]?(?:\d[-\.\s]*){5,6}
+    #         #   ↑↑↑           ↑↑↑
+    #         #   2–3 digits    5–6 digits → total 7–9 chars → but with area code → 8 digits
+    # 
+    #         # Wait — better way:
+    #         # Just match 8 digits total, starting with valid area code
+    #     )
+    #     \b
+    # """,
+    #     re.VERBOSE | re.IGNORECASE,
+    # )
     OTHER_PHONE_NP = re.compile(
-        r""" 
+        fr"""
         \b
-        (?:\+977[-\.\s]?)?     # +977
-        (?:0[-\.\s]?)?         # leading 0
+        (?:\+977[-\.\s]?)?      # optional country code
+        (?:0[-\.\s]?)?          # optional leading 0
         (
-            # Kathmandu: 1 + 7 digits (total 8)
-            1[-\.\s]?(?:\d[-\.\s]*){7}
-    
-            # Other landlines: 2-3 digit area code + digits to make total 8
-            | [2-9]\d{1,2}[-\.\s]?(?:\d[-\.\s]*){5,6}
-            #   ↑↑↑           ↑↑↑
-            #   2–3 digits    5–6 digits → total 7–9 chars → but with area code → 8 digits
-    
-            # Wait — better way:
-            # Just match 8 digits total, starting with valid area code
+            (?P<area>{_AREA_CODE_PATTERN})  # valid area code
+            [-\.\s]?            # separator
+            \d(?:[-\.\s]?\d){{5,6}}  # 5–6 more digits (total 8 digits)
         )
         \b
-    """,
-        re.VERBOSE | re.IGNORECASE,
+        """,
+        re.VERBOSE | re.IGNORECASE
     )
 
     ABOUT_PAGE = re.compile(
