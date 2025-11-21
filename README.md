@@ -8,6 +8,7 @@
 
 > IMPORTANT: requires `git` installed; Install git [here](https://git-scm.com/install/windows)
 
+> `scraper_v3.py` contains the finalized, multi-thread capable code
 
 ## Easily Running the GUI
 
@@ -62,7 +63,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 ##### Local setup
 
 ```bash
-git clone https://github.com/suynep/ContactScraper.git
+git clone https://github.com/vrittech/ContactScraper.git
 cd ContactScraper/
 uv sync
 ```
@@ -84,7 +85,7 @@ For extracting contact info from keywords:
 ##### Local setup + running
 
 ```bash
-git clone https://github.com/suynep/ContactScraper.git
+git clone https://github.com/vrittech/ContactScraper.git
 cd ContactScraper/
 python3 -m virtualenv .venv    # BEFORE RUNNING: ensure that virtualenv package is installed
 source ./.venv/bin/activate
@@ -120,5 +121,3 @@ You can run the basic Tk based GUI using
 OR, if running through `pip`,
 
 `python3 run scraper_multi_gui.py`
-
-
