@@ -745,28 +745,74 @@ class MapsScraper:
 # ==============================
 # CLI & Main Runner
 # ==============================
+
+
+# import os
+# import re
+# import json
+# import csv
+from pathlib import Path
+from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List, Dict
+# 
+# # ← Add these imports if missing
+# from pprint import pprint
+# import argparse
+
+def get_output_dir() -> Path:
+    """Always return a writable directory — works on Windows, Linux, macOS, even frozen exe"""
+    return Path.cwd() / "FetchedData"   # or use Path(__file__).parent if not frozen
+
 def save_results(data: List[Dict], filename: str):
-    dirs_to_create = ["json_data", "csv_data"]
-    for folder in dirs_to_create:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+    output_dir = get_output_dir()
+    json_dir = output_dir / "json_data"
+    csv_dir = output_dir / "csv_data"
+
+    json_dir.mkdir(parents=True, exist_ok=True)
+    csv_dir.mkdir(parents=True, exist_ok=True)
+
+    base_name = Path(filename).stem  # strip .txt, .json etc.
+
     try:
-        with open(
-            os.path.join("json_data", f"{filename}.json"), "w", encoding="utf-8"
-        ) as f:
+        json_path = json_dir / f"{base_name}.json"
+        with open(json_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        log_info(f"Results saved to ./json_data/{filename}.json")
-        with open(
-            os.path.join("csv_data", f"{filename}.csv"), "w", encoding="utf-8"
-        ) as f:
-            if len(data) > 0:
-                w = csv.DictWriter(f, data[0].keys())
-                w.writeheader()
-                for row in data:
-                    w.writerow(row)
-                log_info(f"Results saved to ./csv_data/{filename}.csv")
+        log_info(f"Results saved to {json_path}")
+
+        csv_path = csv_dir / f"{base_name}.csv"
+        if data:
+            with open(csv_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=data[0].keys())
+                writer.writeheader()
+                writer.writerows(data)
+            log_info(f"Results saved to {csv_path}")
     except Exception as e:
-        log_error(f"Failed to save file: {e}")
+        log_error(f"Failed to save results: {e}")
+
+
+# def save_results(data: List[Dict], filename: str):
+#     dirs_to_create = ["json_data", "csv_data"]
+#     for folder in dirs_to_create:
+#         if not os.path.exists(folder):
+#             os.makedirs(folder)
+#     try:
+#         with open(
+#             os.path.join("json_data", f"{filename}.json"), "w", encoding="utf-8"
+#         ) as f:
+#             json.dump(data, f, indent=2, ensure_ascii=False)
+#         log_info(f"Results saved to ./json_data/{filename}.json")
+#         with open(
+#             os.path.join("csv_data", f"{filename}.csv"), "w", encoding="utf-8"
+#         ) as f:
+#             if len(data) > 0:
+#                 w = csv.DictWriter(f, data[0].keys())
+#                 w.writeheader()
+#                 for row in data:
+#                     w.writerow(row)
+#                 log_info(f"Results saved to ./csv_data/{filename}.csv")
+#     except Exception as e:
+#         log_error(f"Failed to save file: {e}")
 
 
 def main():
