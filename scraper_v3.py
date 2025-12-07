@@ -900,10 +900,21 @@ def main():
             executor.map(subscraper, websites)
         # SAVE AFTER ALL DONE
         if args.log and results:
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-            safe_kw = re.sub(r"[^\w\-_]", "_", args.file)
-            filename = f"contacts_[{safe_kw}]_{timestamp}.json"
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+            # Use only the filename, not the full path
+            input_filename = Path(args.file).stem  # ← "Schools in Kathmandu-123"
+        
+            # Clean it safely
+            safe_name = re.sub(r"[^\w\s.-]", "", input_filename)   # keep spaces & dots
+            safe_name = re.sub(r"\s+", "_", safe_name.strip())     # collapse spaces
+        
+            filename = f"contacts_{safe_name}_{timestamp}"
             save_results(results, filename)
+            # timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+            # safe_kw = re.sub(r"[^\w\-_]", "_", args.file)
+            # filename = f"contacts_[{safe_kw}]_{timestamp}.json"
+            # save_results(results, filename)
 
     if args.log and results and args.url:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
