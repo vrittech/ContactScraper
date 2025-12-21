@@ -30,10 +30,6 @@ cd ContactScraper/
 
 `uv run scraper_multi_gui.py` in the ContactScraper folder
 
-
-
-
-
 ## Running the script locally
 
 I've added instructions for Linux/MacOS machines primarily 
@@ -121,3 +117,12 @@ You can run the basic Tk based GUI using
 OR, if running through `pip`,
 
 `python3 run scraper_multi_gui.py`
+
+## Usage and Flags
+
+- `--url`: Single website URL to scrape
+- `--keywords`: Keywords to search in Google Maps
+- `--file`: Scrapes websites in the file containing URLs in each new line
+- `--cities`: List of Cities to scrape the data from
+- `--number`: Number of sites to scrape (default: 4)
+- `--log`: Save output to JSON

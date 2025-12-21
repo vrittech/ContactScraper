@@ -683,10 +683,10 @@ class ContactScraper:
 # Google Maps URL Extractor
 # ==============================
 class MapsScraper:
-    def __init__(self, keywords: str, limit: int = 4, inpfile=None):
-        self.keywords = keywords
+    def __init__(self, keywords: str, limit: int = 4, inpfile=None, city=""):
+        self.keywords = keywords + " " + city
         self.limit = limit
-        self.search_url = f"https://www.google.com/maps/search/{urllib.parse.quote_plus(keywords)}?hl=en"
+        self.search_url = f"https://www.google.com/maps/search/{urllib.parse.quote_plus(self.keywords)}?hl=en"
         self.websites: Set[str] = set()
         self.inpfile = inpfile
         if self.inpfile:
@@ -697,7 +697,7 @@ class MapsScraper:
                     self.websites.update(urls)
             except FileNotFoundError:
                 log_error(f"{self.inpfile} not found")
-
+        
     def run(self) -> List[str]:
         driver = None
         try:
@@ -829,6 +829,13 @@ def main():
         "--file",
         help="Scrapes websites in the file containing URLs in each new line",
     )
+
+    parser.add_argument(
+        "-c",
+        "--cities",
+        help="File containing List of Cities to scrape the data from",
+    )
+
     parser.add_argument(
         "-n",
         "--number",
@@ -839,41 +846,57 @@ def main():
     parser.add_argument(
         "-l", "--log", action="store_true", help="Save output to JSON file"
     )
+
+    global args
+
     args = parser.parse_args()
+    
     results = []
+    
     if args.url:
         scraper = ContactScraper(args.url)
         result = scraper.run()
         results.append(result)
         pprint(result)
+
     elif args.keywords:
-        maps = MapsScraper(args.keywords, limit=args.number)
-        websites = maps.run()
-        if not websites:
-            log_error("No websites found.")
-            return
-        results = []
-        MAX_WORKERS = 13  # Tune: 5–15 safe for most home IPs
+        if args.cities:
+            cities = []
+            with open(args.cities, 'r') as f:
+                cities = f.readlines()
+                cities = [c.strip() for c in cities if c != '\n']
 
-        def subscraper(site: str):
-            try:
-                scraper = ContactScraper(site)
-                result = scraper.run()
-                results.append(result)
-                pprint(result)
-                # time.sleep(0.8) # Be nice to servers
-            except Exception as e:
-                log_error(f"Thread failed on {site}: {e}")
+            if cities:
+                for city in cities:
+                    maps = MapsScraper(args.keywords, limit=args.number, city=city)
+                    print(maps.search_url + "\n")
+                    websites = maps.run()
+                    if not websites:
+                        log_error("No websites found.")
+                        return
+                    results = []
+                    MAX_WORKERS = 13  # Tune: 5–15 safe for most home IPs
 
-        # THREAD POOL (fast, clean, auto-join)
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            executor.map(subscraper, websites)
-        # SAVE AFTER ALL DONE
-        if args.log and results:
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-            safe_kw = re.sub(r"[^\w\-_]", "_", args.keywords)
-            filename = f"contacts_[{safe_kw}]_{timestamp}.json"
-            save_results(results, filename)
+                    def subscraper(site: str):
+                        try:
+                            scraper = ContactScraper(site)
+                            result = scraper.run()
+                            results.append(result)
+                            pprint(result)
+                            # time.sleep(0.8) # Be nice to servers
+                        except Exception as e:
+                            log_error(f"Thread failed on {site}: {e}")
+
+                    # THREAD POOL (fast, clean, auto-join)
+                    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                        executor.map(subscraper, websites)
+            	    # SAVE AFTER ALL DONE
+                    if args.log and results:
+                        timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+                        safe_kw = re.sub(r"[^\w\-_]", "_", maps.keywords)
+                        filename = f"contacts_[{safe_kw}]_{timestamp}.json"
+                        save_results(results, filename)
+
     elif args.file:
         maps = MapsScraper("", inpfile=args.file)
         websites = maps.websites
